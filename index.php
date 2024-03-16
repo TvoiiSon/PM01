@@ -69,7 +69,7 @@ require_once("./db/db.php");
                             $select_comment = mysqli_query($connect, "SELECT * FROM `comments` WHERE `id_request`='$id_equipment'");
                             $select_comment = mysqli_fetch_assoc($select_comment);
                             ?>
-                            <div style="display: flex; justify-content: space-between;">
+                            <div style="display: flex; justify-content: space-between; gap: 40px;">
                                 <li>
                                     <div class="li-content">
                                         <p>Название оборудования - <span><?= $equipment[3] ?></span></p>
