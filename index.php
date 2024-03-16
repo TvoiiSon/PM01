@@ -21,6 +21,7 @@ require_once("./db/db.php");
     <a href="./logout.php">Выйти</a>
     <?php 
         if($_COOKIE['id_group'] == 1){ ?>
+            | <a href="./statistic.php">Статистика</a>
             <div class="container">
                 <div class="container-left">
                     <h2>Зарегистрировать Сотрудника</h2>
@@ -30,7 +31,7 @@ require_once("./db/db.php");
                         <input type="text" name="phone" placeholder="Телефон" required>
                         <input type="password" name="password" placeholder="Пароль" required>
                         <input type="password" name="cpassword" placeholder="Подтверждение Пароля" required>
-                        <input type="submit" value="Зарегистрироваться">
+                        <input type="submit" value="Зарегистрировать">
                     </form>
                     <?php
                         if(empty($_SESSION['errCreateWorker'])) {
@@ -76,24 +77,30 @@ require_once("./db/db.php");
                     ?>
                     <ul>
                         <?php foreach ($select_equipments as $equipment) { 
-                            if($equipment[8] == 0) {
+                            if($equipment[7] == 0) {
                                 $ready = "Ожидает ремонта";
-                            } elseif($equipment[8] == 1) {
+                            } elseif($equipment[7] == 1) {
                                 $ready = "Находится в ремонте";
                             }
+                            $id_equipment = $equipment[0];
+                            $id_type_of_fault = $equipment[4];
+                            $select_type_of_fault = mysqli_query($connect, "SELECT * FROM `type_of_fault` WHERE `id`='$id_type_of_fault'");
+                            $select_type_of_fault = mysqli_fetch_assoc($select_type_of_fault);
+                            $select_comment = mysqli_query($connect, "SELECT * FROM `comments` WHERE `id_request`='$id_equipment'");
+                            $select_comment = mysqli_fetch_assoc($select_comment);
                             ?>
                             <div style="display: flex; justify-content: space-between;">
                                 <li>
                                     <div class="li-content">
                                         <p>Название оборудования - <span><?= $equipment[3] ?></span></p>
-                                        <p>Тип неисправности - <span><?= $equipment[4] ?></span></p>
+                                        <p>Тип неисправности - <span><?= $select_type_of_fault['name_type'] ?></span></p>
                                         <p>Описание проблемы - <span><?= $equipment[5] ?></span></p>
                                         <p>Дата создания заявки - <span><?= $equipment[6] ?></span></p>
                                         <p>Статус - <?= $ready ?></p>
                                         <br>
-                                        <?php if($equipment[8] == 0) { $status = "Начать ремонт"; ?>
+                                        <?php if($equipment[7] == 0) { $status = "Начать ремонт"; ?>
                                             <a href="./vendor/change-status.php?id_request=<?= $equipment[0] ?>&status=1"><?= $status ?></a>
-                                        <?php } elseif($equipment[8] == 1) { $status = "Закончить ремонт"; ?>
+                                        <?php } elseif($equipment[7] == 1) { $status = "Закончить ремонт"; ?>
                                             <a href="./vendor/change-status.php?id_request=<?= $equipment[0] ?>>&status=2"><?= $status ?></a>
                                             |
                                             <a href="./create-comment.php?id_request=<?= $equipment[0] ?>">Оставить комментарий</a>
@@ -105,8 +112,8 @@ require_once("./db/db.php");
                                 <div class="comments">
                                     <h3>Комментарии</h3>
                                     <?php 
-                                    if (!empty($equipment[6])) {
-                                        $comments = explode(', ', $equipment[6]);
+                                    if (!empty($select_comment)) {
+                                        $comments = explode(', ', $select_comment['comment']);
                                         foreach ($comments as $comment) {
                                             echo "<p>$comment</p>";
                                         }
@@ -121,6 +128,10 @@ require_once("./db/db.php");
                 </div>
             </div>
         <?php } elseif($_COOKIE['id_group'] == 3) { ?>
+            <?php
+                $select_type_of_faults = mysqli_query($connect, "SELECT * FROM `type_of_fault`");
+                $select_type_of_faults = mysqli_fetch_all($select_type_of_faults);
+            ?>
             <div class="container">
                 <div class="container-left">
                     <h2>Отправить заявку на ремонт</h2>
@@ -128,7 +139,12 @@ require_once("./db/db.php");
                         <input type="hidden" name="id_user" value="<?= $_COOKIE['id_user'] ?>">
                         <input type="hidden" name="date_create" value="<?= date("Y-m-d")  ?>">
                         <input type="text" name="equipment" placeholder="Название оборудования" required>
-                        <input type="text" name="type_of_fault" placeholder="Тип неисправности" required>
+                        <!-- <input type="text" name="type_of_fault" placeholder="Тип неисправности" required> -->
+                        <select name="type_of_fault" required>
+                            <?php foreach($select_type_of_faults as $type_of_fault) { ?>
+                                <option value="<?= $type_of_fault[0] ?>"><?= $type_of_fault[1] ?></option>
+                            <?php } ?>
+                        </select>
                         <textarea name="description" cols="30" rows="10" placeholder="Описание проблемы" required></textarea>
                         <input type="submit" value="Подать заявку">
                     </form>
@@ -150,28 +166,30 @@ require_once("./db/db.php");
                     ?>
                     <ul>
                         <?php foreach ($select_requests as $request) { 
-                            if($request[8] == 0) {
+                            if($request[7] == 0) {
                                 $ready = "Ожидает ремонта";
-                            } elseif($request[8] == 1) {
+                            } elseif($request[7] == 1) {
                                 $ready = "Находится в ремонте";
-                            } elseif($request[8] == 2) {
+                            } elseif($request[7] == 2) {
                                 $ready = "Ремонт окончен";
                             }
+                            $id_type_of_fault = $request[4];
+                            $select_type_of_fault = mysqli_query($connect, "SELECT * FROM `type_of_fault` WHERE `id`='$id_type_of_fault'");
+                            $select_type_of_fault = mysqli_fetch_assoc($select_type_of_fault);
                             ?>
                             <li>
                                 <div class="li-content">
                                     <p>Название оборудования - <span><?= $request[3] ?></span></p>
-                                    <p>Тип неисправности - <span><?= $request[4] ?></span></p>
+                                    <p>Тип неисправности - <span><?= $select_type_of_fault['name_type'] ?></span></p>
                                     <p>Описание проблемы - <span><?= $request[5] ?></span></p>
-                                    <p>Дата создания заявки - <span><?= $request[7] ?></span></p>
+                                    <p>Дата создания заявки - <span><?= $request[6] ?></span></p>
                                     <p>Статус - <?= $ready ?></p>
                                     <br>
-                                    <?php if($request[8] == 0) { ?>
+                                    <?php if($request[7] == 0) { ?>
                                         <a href="./edit-request.php?id_request=<?= $request[0] ?>">Редактировать</a> | 
                                         <a href="./vendor/delete-request.php?id_request=<?= $request[0] ?>">Удалить</a>
                                     <?php } ?>
                                 </div>
-                                
                             </li>
                         <?php } ?>
                     </ul>

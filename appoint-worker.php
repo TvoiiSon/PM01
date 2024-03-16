@@ -26,16 +26,19 @@ require_once("./db/db.php");
     ?>
     <ul>
         <?php foreach ($select_requests as $request) { 
-            if($request[8] == 0) {
+            if($request[7] == 0) {
                 $ready = "Ожидает ремонта";
-            } elseif($request[8] == 1) {
+            } elseif($request[7] == 1) {
                 $ready = "Находится в ремонте";
             }
+            $id_type_of_fault = $request[4];
+            $select_type_of_fault = mysqli_query($connect, "SELECT * FROM `type_of_fault` WHERE `id`='$id_type_of_fault'");
+            $select_type_of_fault = mysqli_fetch_assoc($select_type_of_fault);
             ?>
             <li>
                 <div class="li-content">
                     <p>Название оборудования - <span><?= $request[3] ?></span></p>
-                    <p>Тип неисправности - <span><?= $request[4] ?></span></p>
+                    <p>Тип неисправности - <span><?= $select_type_of_fault['name_type'] ?></span></p>
                     <p>Описание проблемы - <span><?= $request[5] ?></span></p>
                     <p>Дата создания заявки - <span><?= $request[6] ?></span></p>
                     <p>Статус - <?= $ready ?></p>
